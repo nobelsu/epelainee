@@ -48,9 +48,11 @@ const dummy = new Object3D()
  * that floor, not for looks alone.
  */
 /** Desktop sphere size. Mobile shrinks via `TOUCH_NODE_SCALE`. */
-const NODE_RADIUS = 0.13
-/** Flat stars — a bit larger than spheres so tips survive the halftone. */
-const STAR_OUTER = NODE_RADIUS * 1.35
+const NODE_RADIUS = 0.16
+/** 4-point internship stars — a bit larger than spheres. */
+const STAR4_OUTER = NODE_RADIUS * 1.35
+/** 5-point certification stars — clearly larger so kind reads at a glance. */
+const STAR5_OUTER = NODE_RADIUS * 1.9
 const DUST_COUNT = 6000
 
 /**
@@ -120,11 +122,13 @@ function staggered(raw: number, delay: number) {
 }
 
 /**
- * Mobile-only size (relative to desktop geo). Stars bumped so tips stay readable.
+ * Mobile-only size (relative to desktop geo).
  * Tuned so mobile world size stays ~same after the desktop radius bump.
  */
-const TOUCH_NODE_SCALE = 0.71
-const TOUCH_STAR_SCALE = 0.93
+const TOUCH_NODE_SCALE = 0.58
+const TOUCH_STAR4_SCALE = 0.76
+/** Keep 5-point stars reading larger than 4-point on touch too. */
+const TOUCH_STAR5_SCALE = 0.85
 
 const FIELD_BOUNDS = new Sphere(new Vector3(0, 0, 0), 60)
 
@@ -151,8 +155,8 @@ export function Galaxy({
   const dust = useMemo(() => buildDust(dustCount), [dustCount])
   const shell = useMemo(() => buildStarShell(shellCount), [shellCount])
 
-  const star4 = useMemo(() => regularStarShape(4, STAR_OUTER), [])
-  const star5 = useMemo(() => regularStarShape(5, STAR_OUTER), [])
+  const star4 = useMemo(() => regularStarShape(4, STAR4_OUTER), [])
+  const star5 = useMemo(() => regularStarShape(5, STAR5_OUTER), [])
 
   /** Global layout indices partitioned by experience kind. */
   const groups = useMemo(() => {
@@ -324,8 +328,8 @@ export function Galaxy({
     }
 
     writeGroup(sphereRef.current, groups.sphere, TOUCH_NODE_SCALE)
-    writeGroup(internRef.current, groups.intern, TOUCH_STAR_SCALE)
-    writeGroup(certRef.current, groups.cert, TOUCH_STAR_SCALE)
+    writeGroup(internRef.current, groups.intern, TOUCH_STAR4_SCALE)
+    writeGroup(certRef.current, groups.cert, TOUCH_STAR5_SCALE)
 
     // Park the label on the hovered node.
     const label = labelRef.current
