@@ -1,9 +1,7 @@
-# Elizabeth P. Elaine — portfolio
-
 A halftone galaxy. The site opens on a stippled eight-point star; click it and it
-bursts into a wide arc of stars filling the top of the frame — corners included —
-curving away to a clear horizon above the name. Each dot in that field is one
-experience: hover (or tap) to name it, click to open its detail.
+bursts into a wide arc of stars filling the top of the frame curving away to a 
+clear horizon above the name. Each dot in that field is one experience: 
+hover (or tap) to name it, click to open its detail.
 
 Categories are navigated through the central star. Bring the pointer near it and
 a ring of seven category buttons fades in; click one and the galaxy filters to
