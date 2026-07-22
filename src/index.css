@@ -45,6 +45,35 @@ canvas {
   box-shadow: none;
 }
 
+.hub-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.55rem);
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  padding: 0.3rem 0.55rem;
+  white-space: nowrap;
+  font: 400 0.625rem/1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 0 8px #000;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 3px;
+  pointer-events: none;
+  transition:
+    opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#hub-hotspot:hover .hub-tooltip,
+#hub-hotspot:focus-visible .hub-tooltip,
+.hub-tooltip.is-on {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* Empty-space touch cue: thin white ring, expand + fade. */
 .empty-ripple {
   position: absolute;
@@ -90,5 +119,9 @@ canvas {
   * {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .hub-tooltip {
+    transition: none;
   }
 }

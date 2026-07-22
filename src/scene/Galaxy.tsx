@@ -5,9 +5,12 @@ import {
   BufferAttribute,
   Group,
   InstancedMesh,
+  Matrix4,
   Object3D,
   Points,
+  type Intersection,
   type PointsMaterial,
+  type Raycaster,
   Sphere,
   Vector3,
 } from 'three'
@@ -122,13 +125,59 @@ function staggered(raw: number, delay: number) {
 }
 
 /**
- * Mobile-only size (relative to desktop geo).
- * Near 1 so finger hits land — earlier ~0.58 made stars nearly untappable.
+ * Mobile-only visual size (relative to desktop geo).
+ * Tuned so mobile world size stays ~same after the desktop radius bump.
+ * Finger hits use a fatter raycast sphere — see `TOUCH_HIT_PAD` — not bigger meshes.
  */
-const TOUCH_NODE_SCALE = 0.95
-const TOUCH_STAR4_SCALE = 1.05
+const TOUCH_NODE_SCALE = 0.58
+const TOUCH_STAR4_SCALE = 0.76
 /** Keep 5-point stars reading larger than 4-point on touch too. */
-const TOUCH_STAR5_SCALE = 1.15
+const TOUCH_STAR5_SCALE = 0.85
+
+/**
+ * Touch pick radius vs rendered geo radius. Visual stays small; hit sphere
+ * matches the earlier ~2.5× bump that made fingers land without looking fat.
+ */
+const TOUCH_HIT_PAD = 2.5
+
+const _hitSphere = new Sphere()
+const _hitMatrix = new Matrix4()
+const _hitWorld = new Matrix4()
+const _hitPoint = new Vector3()
+
+/**
+ * Sphere pick per instance — ignores star silhouette, good enough for fingers.
+ * Skips near-zero scales so filtered-out nodes stay untouchable.
+ */
+function fatInstanceRaycast(localRadius: number) {
+  return function raycast(
+    this: InstancedMesh,
+    raycaster: Raycaster,
+    intersects: Intersection[],
+  ) {
+    if (this.count === 0) return
+    const threshold = localRadius * TOUCH_HIT_PAD
+    for (let i = 0; i < this.count; i++) {
+      this.getMatrixAt(i, _hitMatrix)
+      const sx = Math.hypot(
+        _hitMatrix.elements[0],
+        _hitMatrix.elements[1],
+        _hitMatrix.elements[2],
+      )
+      if (sx < 0.02) continue
+      _hitWorld.multiplyMatrices(this.matrixWorld, _hitMatrix)
+      _hitSphere.center.setFromMatrixPosition(_hitWorld)
+      _hitSphere.radius = threshold * sx
+      if (!raycaster.ray.intersectSphere(_hitSphere, _hitPoint)) continue
+      intersects.push({
+        distance: raycaster.ray.origin.distanceTo(_hitPoint),
+        point: _hitPoint.clone(),
+        object: this,
+        instanceId: i,
+      })
+    }
+  }
+}
 
 const FIELD_BOUNDS = new Sphere(new Vector3(0, 0, 0), 60)
 
@@ -155,14 +204,8 @@ export function Galaxy({
   const dust = useMemo(() => buildDust(dustCount), [dustCount])
   const shell = useMemo(() => buildStarShell(shellCount), [shellCount])
 
-  const star4 = useMemo(
-    () => regularStarShape(4, STAR4_OUTER * (touch ? 1.45 : 1)),
-    [touch],
-  )
-  const star5 = useMemo(
-    () => regularStarShape(5, STAR5_OUTER * (touch ? 1.45 : 1)),
-    [touch],
-  )
+  const star4 = useMemo(() => regularStarShape(4, STAR4_OUTER), [])
+  const star5 = useMemo(() => regularStarShape(5, STAR5_OUTER), [])
 
   /** Global layout indices partitioned by experience kind. */
   const groups = useMemo(() => {
@@ -408,21 +451,28 @@ export function Galaxy({
   // Off-galaxy: disable raycasting so empty-space clicks reach `onPointerMissed`
   // (ripples) instead of landing on the collapsed / expanding instance cloud.
   // Also drop hover — pointerOut won't fire once raycast is stubbed out.
+  // Touch: fat sphere raycast so small visuals still catch fingers.
   useEffect(() => {
-    const meshes = [sphereRef.current, internRef.current, certRef.current]
-    for (const mesh of meshes) {
+    const specs: Array<[InstancedMesh | null, number]> = [
+      [sphereRef.current, NODE_RADIUS],
+      [internRef.current, STAR4_OUTER],
+      [certRef.current, STAR5_OUTER],
+    ]
+    for (const [mesh, radius] of specs) {
       if (!mesh) continue
-      if (interactive) {
-        mesh.raycast = InstancedMesh.prototype.raycast
-      } else {
+      if (!interactive) {
         mesh.raycast = () => {}
+      } else if (touch) {
+        mesh.raycast = fatInstanceRaycast(radius)
+      } else {
+        mesh.raycast = InstancedMesh.prototype.raycast
       }
     }
     if (!interactive) {
       setHovered(null)
       document.body.style.cursor = ''
     }
-  }, [interactive, setHovered])
+  }, [interactive, setHovered, touch])
 
   /**
    * A filtered-out node shrinks to nothing but its instance still exists, and a
@@ -478,7 +528,7 @@ export function Galaxy({
           frustumCulled={false}
           {...sphereHandlers}
         >
-          <sphereGeometry args={[NODE_RADIUS * (touch ? 1.55 : 1), 12, 12]} />
+          <sphereGeometry args={[NODE_RADIUS, 12, 12]} />
           <meshBasicMaterial color="#ffffff" />
         </instancedMesh>
       ) : null}

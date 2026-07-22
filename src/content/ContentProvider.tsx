@@ -68,7 +68,7 @@ export function ContentProvider({ children }: { children: ReactNode }) {
       attrs: { name: 'twitter:description' },
     })
 
-    const fav = favicon || '/favicon.svg'
+    const fav = favicon || '/favicon.png'
     setMeta('link[rel="icon"]', 'href', fav, {
       tag: 'link',
       attrs: { rel: 'icon' },

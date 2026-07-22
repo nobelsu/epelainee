@@ -82,7 +82,7 @@ function loadSiteSettings(): SiteSettings {
   return {
     ...first,
     siteUrl: first.siteUrl?.trim() ?? '',
-    favicon: asMediaPath(first.favicon, '/favicon.svg'),
+    favicon: asMediaPath(first.favicon, '/favicon.png'),
     ogImage: asMediaPath(first.ogImage),
     socialLinks,
   }
