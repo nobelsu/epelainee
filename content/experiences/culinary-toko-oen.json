@@ -2,10 +2,7 @@
   "id": "culinary-toko-oen",
   "title": "Culinary Intern",
   "org": "Toko Oen",
-  "subcategory": "biz-service",
-  "dates": "",
-  "location": "",
-  "blurb": "",
-  "order": 7,
-  "kind": "internship"
+  "subcategory": "crea-culinary",
+  "kind": "internship",
+  "order": 7
 }
