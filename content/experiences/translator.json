@@ -1,0 +1,10 @@
+{
+  "id": "translator",
+  "title": "Indonesian Software Translator",
+  "org": "TreeSize, JAM Software",
+  "subcategories": [
+    "hum-literature",
+    "tech-computing"
+  ],
+  "order": 0
+}
